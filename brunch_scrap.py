@@ -2,17 +2,17 @@
 브런치 글의 내용을 html파일로 저장해주는 함수
 '''
 
-# 2017.08.12
+# 2017.09.23
 
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import re
-
+import sys
 
 def brunch_to_html(url):
     # 웹페이지 수집
     soup = BeautifulSoup(urlopen(url), 'html.parser')
-    articles = soup.findAll(re.compile(r'(p|div)'), \
+    articles = soup.findAll(re.compile(r'(p|div|h2|blockquote)'), \
     {'class':re.compile(r'(wrap_item item_type_text|wrap_img_float)')})
 
     ## 제목 추출
@@ -25,7 +25,11 @@ def brunch_to_html(url):
     for line in articles:
         if str(line).__contains__('div'):
             img_link = re.search(r'http.*', line.find('img')['src']).group(0)
-            body += '<img src="' + img_link + '">'
+            body += '<img src="' + img_link + '"><br>'
+        elif str(line).__contains__('h2'):
+            body += '<h2>' + line.text + '</h2><br>'
+        elif str(line).__contains__('blockquote'):
+            body += '<br><font color="grey">' + line.text + '</font><br>'
         else:
             body += line.text + '<br>'
 
@@ -36,3 +40,7 @@ def brunch_to_html(url):
 
     return(html)
 
+docs = brunch_to_html(sys.argv[1])
+
+with open('/Volumes/RAMDisk/brunch.html', 'w') as f:
+    f.write(docs)
